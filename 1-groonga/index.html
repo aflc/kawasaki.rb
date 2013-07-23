@@ -1,0 +1,411 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:regular,semibold,italic,italicsemibold|PT+Sans:400,700,400italic,700italic|PT+Serif:400,700,400italic,700italic" rel="stylesheet" />
+    <link href="css/impress.css"  rel="stylesheet" />
+    <link href="css/pygments.css" rel="stylesheet" />
+</head>
+<body>
+<div id="impress" class="impress-not-supported">
+    <div class="fallback-message">
+        <p>Your browser <b>doesn't support the features required</b> by impress.js, so you are presented with a simplified version of this presentation.</p>
+        <p>For the best experience please use the latest <b>Chrome</b> or <b>Safari</b> browser. Firefox 10 (to be released soon) will also handle it.</p>
+    </div>
+
+<div class="step" id="title" data-x="0" data-y="0">
+
+
+<h1>
+<img src="./groonga-logo.png" alt=""> 結構便利です</h1>
+
+<p><small>The groonga project</small></p>
+
+
+</div>
+<div class="step" data-x="1200" data-y="0">
+
+
+<h2>groongaって何？</h2>
+
+<ul>
+<li>名前の由来は「強そうだから」</li>
+<li>全文検索エンジンSennaの後継</li>
+</ul>
+
+
+</div>
+<div class="step" data-x="2400" data-y="0">
+
+
+<h2>実体は</h2>
+
+<p>全文検索が得意なカラム志向のデータストア</p>
+
+
+</div>
+<div class="step" data-x="3600" data-y="0">
+
+
+<h2>どうやって使うの？</h2>
+
+<ol>
+<li>MySQL(MariaDB)にプラグインとして導入可能 =&gt; mroonga
+ストレージエンジンとして使うもよし、全文検索機能のみを使うもよし</li>
+<li>PostgreSQL(あまり更新されてない？)</li>
+<li>node.js =&gt; nroonga</li>
+<li>単体httpサーバーとして動く</li>
+<li>Rubyから直接叩く(C-extension)</li>
+<li>専用プロトコル、memcachedプロトコル</li>
+<li>C APIを利用する</li>
+</ol>
+
+
+</div>
+<div class="step" data-x="4800" data-y="0">
+
+
+<h2>ウリ</h2>
+
+<ul>
+<li><p>参照ロックフリー
+データの更新中に参照が出来る（ロックされない）
+頻繁にデータを変更する場合にはとても有利</p></li>
+<li><p>高速なドリルダウン機能
+が標準機能になってる
+Solrではファセットと呼ばれているやつ
+Amazonとかでジャンルごとに検索結果の件数が出てくるアレ</p></li>
+<li>
+<p>位置情報検索が出来る</p>
+
+<ul>
+<li>内部でインデックス化するので検索が速いらしい</li>
+<li>試したこと無いけど</li>
+</ul>
+</li>
+</ul>
+
+
+</div>
+<div class="step" data-x="0" data-y="800">
+
+
+<h2>groongaを使っている有名？ドコロ</h2>
+
+<ul>
+<li>るりまサーチ</li>
+<li>buzztter</li>
+<li>Bizreach</li>
+<li>Milkode</li>
+<li>-&gt; <a href="http://groonga.org/ja/users/">http://groonga.org/ja/users/</a>
+</li>
+</ul>
+
+
+</div>
+<div class="step" data-x="1200" data-y="800">
+
+
+<h2>rroonga</h2>
+
+<ul>
+<li>Rubyから直接groongaライブラリを呼び出すラッパーライブラリ</li>
+<li>groongaの開発陣がメンテしてる（ため安定してる）</li>
+<li>単なるファイルベースのKVSとして気軽に利用できる
+
+<ul>
+<li>ファイルベースのDBって意外にに選択肢が無い</li>
+<li>levelDB</li>
+<li>TokyoCabinet/KyotoCabinet</li>
+<li>SQLite3</li>
+<li>Berkley DB</li>
+<li>(知ってたら教えて)</li>
+</ul>
+</li>
+</ul>
+
+
+</div>
+<div class="step" data-x="2400" data-y="800">
+
+
+<h2>rroongaでのデモ</h2>
+
+<p>必要なことは</p>
+
+<pre><code>gem install rroonga
+</code></pre>
+
+<p>だけ！</p>
+
+<p>groongaがインストールされていない場合は自動でソースを拾ってきてビルドします（ただしgroongaコマンドは無い）</p>
+
+
+</div>
+<div class="step" data-x="3600" data-y="800">
+
+
+<h2>サンプルデータ</h2>
+
+<p>せっかくなので「ニコニコ動画コメントなどデータ」を突っ込んでみよう</p>
+
+<ul>
+<li>動画のメタデータとコメントがダウンロード出来ます
+
+<ul>
+<li><a href="http://www.nii.ac.jp/cscenter/idr/nico/nico.html">http://www.nii.ac.jp/cscenter/idr/nico/nico.html</a></li>
+</ul>
+</li>
+</ul>
+
+
+</div>
+<div class="step" data-x="4800" data-y="800">
+
+
+<h2>データベースの作成</h2>
+
+<div class="highlight"><pre><span class="nb">require</span> <span class="s1">'groonga'</span>
+
+<span class="c1"># encodingの設定</span>
+<span class="no">Encoding</span><span class="o">.</span><span class="n">default_external</span> <span class="o">=</span> <span class="s1">'utf-8'</span>
+<span class="ss">Groonga</span><span class="p">:</span><span class="ss">:Context</span><span class="o">.</span><span class="n">default_options</span> <span class="o">=</span> <span class="p">{</span><span class="ss">:encoding</span> <span class="o">=&gt;</span> <span class="ss">:utf8</span><span class="p">}</span>
+
+<span class="k">begin</span>
+  <span class="ss">Groonga</span><span class="p">:</span><span class="ss">:Database</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">"./db/grn"</span><span class="p">)</span>
+<span class="k">rescue</span>
+  <span class="ss">Groonga</span><span class="p">:</span><span class="ss">:Database</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:path</span> <span class="o">=&gt;</span> <span class="s2">"./db/grn"</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+
+</div>
+<div class="step" data-x="0" data-y="1600">
+
+
+<h2>スキーマ定義</h2>
+
+<div class="highlight"><pre><span class="ss">Groonga</span><span class="p">:</span><span class="ss">:Schema</span><span class="o">.</span><span class="n">create_table</span><span class="p">(</span><span class="s2">"Tags"</span><span class="p">,</span> <span class="ss">:type</span> <span class="o">=&gt;</span> <span class="ss">:patricia_trie</span><span class="p">)</span>
+<span class="ss">Groonga</span><span class="p">:</span><span class="ss">:Schema</span><span class="o">.</span><span class="n">create_table</span><span class="p">(</span><span class="s2">"Videos"</span><span class="p">,</span> <span class="ss">:type</span> <span class="o">=&gt;</span> <span class="ss">:hash</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">table</span><span class="o">|</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">short_text</span><span class="p">(</span><span class="s2">"title"</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">"description"</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">short_text</span><span class="p">(</span><span class="s2">"thumbnail_url"</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">time</span><span class="p">(</span><span class="s2">"upload_time"</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">uint32</span><span class="p">(</span><span class="s2">"length"</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">short_text</span><span class="p">(</span><span class="s2">"movie_type"</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">uint32</span><span class="p">(</span><span class="s2">"size_high"</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">uint32</span><span class="p">(</span><span class="s2">"size_low"</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">uint64</span><span class="p">(</span><span class="s2">"view_counter"</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">uint64</span><span class="p">(</span><span class="s2">"comment_counter"</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">uint64</span><span class="p">(</span><span class="s2">"mylist_counter"</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">reference</span><span class="p">(</span><span class="s2">"taglist"</span><span class="p">,</span> <span class="s2">"Tags"</span><span class="p">,</span> <span class="ss">:type</span> <span class="o">=&gt;</span> <span class="ss">:vector</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">reference</span><span class="p">(</span><span class="s2">"locked_taglist"</span><span class="p">,</span> <span class="s2">"Tags"</span><span class="p">,</span> <span class="ss">:type</span> <span class="o">=&gt;</span> <span class="ss">:vector</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">reference</span><span class="p">(</span><span class="s2">"category_taglist"</span><span class="p">,</span> <span class="s2">"Tags"</span><span class="p">,</span> <span class="ss">:type</span> <span class="o">=&gt;</span> <span class="ss">:vector</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+
+</div>
+<div class="step" data-x="1200" data-y="1600">
+
+
+<h2>スキーマ定義2</h2>
+
+<div class="highlight"><pre><span class="ss">Groonga</span><span class="p">:</span><span class="ss">:Schema</span><span class="o">.</span><span class="n">create_table</span><span class="p">(</span><span class="s2">"Comments"</span><span class="p">,</span> <span class="ss">:type</span> <span class="o">=&gt;</span> <span class="ss">:hash</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">table</span><span class="o">|</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">reference</span><span class="p">(</span><span class="s2">"video"</span><span class="p">,</span> <span class="s2">"Videos"</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">time</span><span class="p">(</span><span class="s2">"date"</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">uint64</span><span class="p">(</span><span class="s2">"no"</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">uint64</span><span class="p">(</span><span class="s2">"vpos"</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">short_text</span><span class="p">(</span><span class="s2">"comment"</span><span class="p">)</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">short_text</span><span class="p">(</span><span class="s2">"command"</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+
+</div>
+<div class="step" data-x="2400" data-y="1600">
+
+
+<h2>データを突っ込む</h2>
+
+<div class="highlight"><pre><span class="n">cmd</span> <span class="o">=</span> <span class="no">ARGV</span><span class="o">[</span><span class="mi">0</span><span class="o">]</span>
+<span class="no">Dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="s2">"video/*.dat"</span><span class="p">))</span> <span class="k">do</span> <span class="o">|</span><span class="n">path</span><span class="o">|</span>
+  <span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">line</span><span class="o">|</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="no">JSON</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="no">Groonga</span><span class="o">[</span><span class="s2">"Videos"</span><span class="o">].</span><span class="n">add</span><span class="p">(</span><span class="n">j</span><span class="o">[</span><span class="s2">"video_id"</span><span class="o">]</span><span class="p">,</span> <span class="ss">:title</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"title"</span><span class="o">]</span><span class="p">,</span>
+                                   <span class="ss">:description</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"description"</span><span class="o">]</span><span class="p">,</span>
+                                   <span class="ss">:thumbnail_url</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"thumbnail_url"</span><span class="o">]</span><span class="p">,</span>
+                                   <span class="ss">:upload_time</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"upload_time"</span><span class="o">]</span><span class="p">,</span>
+                                   <span class="ss">:length</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"length"</span><span class="o">]</span><span class="p">,</span>
+                                   <span class="ss">:movie_type</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"movie_type"</span><span class="o">]</span><span class="p">,</span>
+                                   <span class="ss">:size_high</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"size_high"</span><span class="o">]</span><span class="p">,</span>
+                                   <span class="ss">:size_low</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"size_low"</span><span class="o">]</span><span class="p">,</span>
+                                   <span class="ss">:view_counter</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"view_counter"</span><span class="o">]</span><span class="p">,</span>
+                                   <span class="ss">:comment_counter</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"comment_counter"</span><span class="o">]</span><span class="p">,</span>
+                                   <span class="ss">:mylist_counter</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"mylist_counter"</span><span class="o">]</span><span class="p">,</span>
+                                   <span class="ss">:taglist</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"tags"</span><span class="o">].</span><span class="n">map</span><span class="p">{</span><span class="o">|</span><span class="n">x</span><span class="o">|</span> <span class="n">x</span><span class="o">[</span><span class="s2">"tag"</span><span class="o">]</span><span class="p">},</span>
+                                   <span class="ss">:locked_taglist</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"tags"</span><span class="o">].</span><span class="n">select</span><span class="p">{</span><span class="o">|</span><span class="n">x</span><span class="o">|</span> <span class="n">x</span><span class="o">[</span><span class="s2">"lock"</span><span class="o">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">}</span><span class="o">.</span><span class="n">map</span><span class="p">{</span><span class="o">|</span><span class="n">x</span><span class="o">|</span> <span class="n">x</span><span class="o">[</span><span class="s2">"tag"</span><span class="o">]</span><span class="p">},</span>
+                                   <span class="ss">:category_taglist</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"tags"</span><span class="o">].</span><span class="n">select</span><span class="p">{</span><span class="o">|</span><span class="n">x</span><span class="o">|</span> <span class="n">x</span><span class="o">[</span><span class="s2">"category"</span><span class="o">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">}</span><span class="o">.</span><span class="n">map</span><span class="p">{</span><span class="o">|</span><span class="n">x</span><span class="o">|</span> <span class="n">x</span><span class="o">[</span><span class="s2">"tag"</span><span class="o">]</span><span class="p">}</span>
+                    <span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+
+</div>
+<div class="step" data-x="3600" data-y="1600">
+
+
+<h2>データを突っ込む2</h2>
+
+<div class="highlight"><pre><span class="no">Dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="no">File</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="s2">"thread/**/sm*.dat"</span><span class="p">))</span> <span class="k">do</span> <span class="o">|</span><span class="n">path</span><span class="o">|</span>
+  <span class="n">videoid</span> <span class="o">=</span> <span class="s2">"sm"</span> <span class="o">+</span> <span class="nb">Integer</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sr">/(\d+)\/sm(\d+).dat$/</span><span class="p">)</span><span class="o">.</span><span class="n">captures</span><span class="o">.</span><span class="n">join</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">to_s</span>
+  <span class="nb">puts</span> <span class="n">videoid</span>
+  <span class="no">File</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">line</span><span class="o">|</span>
+    <span class="n">j</span> <span class="o">=</span> <span class="no">JSON</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="n">primary_id</span> <span class="o">=</span> <span class="sx">%Q!</span><span class="si">#{</span><span class="n">videoid</span><span class="si">}</span><span class="sx">/</span><span class="si">#{</span><span class="n">j</span><span class="o">[</span><span class="s2">"no"</span><span class="o">]</span><span class="si">}</span><span class="sx">!</span>
+    <span class="no">Groonga</span><span class="o">[</span><span class="s2">"Comments"</span><span class="o">].</span><span class="n">add</span><span class="p">(</span><span class="n">primary_id</span><span class="p">,</span> <span class="ss">:video</span> <span class="o">=&gt;</span> <span class="n">videoid</span><span class="p">,</span>
+                                        <span class="ss">:date</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"date"</span><span class="o">]</span><span class="p">,</span>
+                                        <span class="ss">:no</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"no"</span><span class="o">]</span><span class="p">,</span>
+                                        <span class="ss">:vpos</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"vpos"</span><span class="o">]</span><span class="p">,</span>
+                                        <span class="ss">:comment</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"comment"</span><span class="o">]</span><span class="p">,</span>
+                                        <span class="ss">:command</span> <span class="o">=&gt;</span> <span class="n">j</span><span class="o">[</span><span class="s2">"command"</span><span class="o">]</span>
+                            <span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</pre></div>
+
+<ul>
+<li>手元のMBA(2011)に9714112コメント（最初の0000ファイルだけ）入れてみて11分かかりました
+
+<ul>
+<li>ほぼCPU100%張り付き</li>
+</ul>
+</li>
+</ul>
+
+
+</div>
+<div class="step" data-x="4800" data-y="1600">
+
+
+<h2>全文検索インデックスを作る</h2>
+
+<div class="highlight"><pre><span class="ss">Groonga</span><span class="p">:</span><span class="ss">:Schema</span><span class="o">.</span><span class="n">create_table</span><span class="p">(</span><span class="s2">"CommentTerms"</span><span class="p">,</span>
+                             <span class="ss">:type</span> <span class="o">=&gt;</span> <span class="ss">:patricia_trie</span><span class="p">,</span>
+                             <span class="ss">:normalizer</span> <span class="o">=&gt;</span> <span class="ss">:NormalizerAuto</span><span class="p">,</span>
+                             <span class="ss">:default_tokenizer</span> <span class="o">=&gt;</span> <span class="s2">"TokenBigram"</span>   <span class="c1"># TokenMecabもあるよ</span>
+                             <span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">table</span><span class="o">|</span>
+  <span class="n">table</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">"Comments.comment"</span><span class="p">)</span>
+<span class="k">end</span>
+</pre></div>
+
+
+</div>
+<div class="step" data-x="0" data-y="2400">
+
+
+<h2>検索して楽しむ</h2>
+
+<div class="highlight"><pre><span class="n">ruby_comments</span> <span class="o">=</span> <span class="no">Groonga</span><span class="o">[</span><span class="s2">"Comments"</span><span class="o">].</span><span class="n">select</span> <span class="p">{</span><span class="o">|</span><span class="n">record</span><span class="o">|</span> <span class="n">record</span><span class="o">.</span><span class="n">comment</span> <span class="o">=~</span> <span class="s2">"Ruby"</span><span class="p">}</span>
+<span class="nb">puts</span> <span class="n">ruby_comments</span><span class="o">.</span><span class="n">size</span>  <span class="c1"># =&gt; 1</span>
+<span class="nb">puts</span> <span class="no">JSON</span><span class="o">.</span><span class="n">pretty_generate</span><span class="p">(</span><span class="n">ruby_comments</span><span class="o">.</span><span class="n">records</span><span class="p">)</span>
+
+<span class="c1"># [</span>
+<span class="c1">#   {</span>
+<span class="c1">#     "_id": 1,</span>
+<span class="c1">#     "_key": {</span>
+<span class="c1">#       "_id": 5872107,</span>
+<span class="c1">#       "_key": "sm9/465099",</span>
+<span class="c1">#       "command": "big ue",</span>
+<span class="c1">#       "comment": "Building Ruby, Rails, Subversion, Mongrel, and MySQL on Mac",</span>
+<span class="c1">#       "date": "2007-04-08T01:39:36+09:00",</span>
+<span class="c1">#       "no": 465099,</span>
+<span class="c1">#       "video": {</span>
+<span class="c1">#         "_id": 1628,</span>
+<span class="c1">#         "_key": "sm9",</span>
+<span class="c1">#         "category_taglist": [</span>
+<span class="c1"># </span>
+<span class="c1">#         ],</span>
+<span class="c1">#         "comment_counter": 4103378,</span>
+<span class="c1">#         "description": "レッツゴー！陰陽師（フルコーラスバージョン）",</span>
+<span class="c1">#         "length": 319,</span>
+<span class="c1">#         ....</span>
+</pre></div>
+
+
+</div>
+<div class="step" data-x="1200" data-y="2400">
+
+
+<h2>残念</h2>
+
+<ul>
+<li>
+<p>Python用のライブラリが無い</p>
+
+<ul>
+<li>CAPIが用意されているが、ドキュメントなくて泣きたい</li>
+</ul>
+</li>
+<li><p>ドキュメントがちゃんとしていると思いきやそうでもない</p></li>
+<li>
+<p>rroongaにはGVLの問題がある</p>
+
+<ul>
+<li>Issueは１年以上前にあるが放置(<a href="http://redmine.groonga.org/issues/1221">http://redmine.groonga.org/issues/1221</a>)</li>
+</ul>
+</li>
+<li>
+<p>レプリケーションとかトランザクションとか本格的な運用に向けた機能は無い</p>
+
+<ul>
+<li>FluentdやMuninとかと連携は出来るみたい</li>
+</ul>
+</li>
+</ul>
+
+
+</div>
+<div class="step" data-x="2400" data-y="2400">
+
+
+<h2>今後</h2>
+
+<ul>
+<li>groonga++!!
+
+<ul>
+<li>marisa-trieが入る!!アツい!!</li>
+</ul>
+</li>
+<li>C APIのドキュメント化が始まりました
+
+<ul>
+<li>意味不明なAPIも多いので助かる（特にgrnexpr周り）</li>
+</ul>
+</li>
+</ul>
+
+
+</div>
+
+
+    <div id="overview" class="step" data-x="3000" data-y="1500" data-scale="10">
+    </div>
+
+</div>
+
+<div class="hint">
+    <p>Use a spacebar or arrow keys to navigate</p>
+</div>
+<script>
+if ("ontouchstart" in document.documentElement) { 
+    document.querySelector(".hint").innerHTML = "<p>Tap on the left or right to navigate</p>";
+}
+</script>
+<script src="js/impress.js"></script>
+</body>
+</html>
+
